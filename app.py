@@ -1,28 +1,24 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template
 import pandas as pd
 
 app = Flask(__name__)
 
-def load_data():
-    df = pd.read_csv("crypto_data.csv")
-    df = df.tail(20)
-    return df.to_dict(orient="records")
-
-@app.route("/")
-def home():
-    data = load_data()
+# ⭐ Dashboard route (your main app logic)
+@app.route("/dashboard")
+def dashboard():
+    # Load crypto data from CSV
+    data = pd.read_csv("crypto_data.csv")
     return render_template("index.html", data=data)
 
-@app.route("/chart-data")
-def chart_data():
-    df = pd.read_csv("crypto_data.csv")
-    df = df.tail(50)
+# ⭐ Health check route (fixes Render HEAD error)
+@app.route("/", methods=["GET", "HEAD"])
+def home():
+    return "Crypto Dashboard is running!"
 
-    return jsonify({
-        "labels": df["Timestamp"].tolist(),
-        "prices": df["Price"].str.replace("$", "").str.replace(",", "").astype(float).tolist(),
-        "names": df["Name"].tolist()
-    })
+# ⭐ Optional: dedicated health endpoint (best practice)
+@app.route("/health", methods=["GET", "HEAD"])
+def health():
+    return "OK", 200
 
 if __name__ == "__main__":
     app.run(debug=True)
